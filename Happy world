@@ -1,0 +1,172 @@
+
+from google.colab import files
+
+html = r'''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Happy Cartoon World 💖</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;min-height:100vh;text-align:center;
+ font-family:"Trebuchet MS",Arial,sans-serif;
+ color:#70345e;
+ background:linear-gradient(135deg,#ffe0ef,#e5ddff,#d9f7ff);
+ overflow-x:hidden
+}
+.card{
+ max-width:650px;margin:35px auto;padding:28px 20px;
+ background:#ffffffd9;border:3px solid white;
+ border-radius:30px;box-shadow:0 12px 35px #b77ca944
+}
+h1{color:#f05a9d}
+input,select,button{
+ padding:13px;margin:7px;border-radius:15px;
+ border:2px solid #f5a7ce;font-size:16px
+}
+button{
+ background:#ff82b6;color:white;border:0;
+ cursor:pointer;font-weight:bold;
+ transition:.2s
+}
+button:hover{transform:scale(1.06);background:#f05298}
+.options button{background:#b59af8}
+#world{display:none}
+.cartoons{font-size:60px;animation:bounce 1.4s infinite}
+.heart{position:fixed;bottom:-40px;animation:float 7s linear infinite;z-index:-1}
+@keyframes bounce{50%{transform:translateY(-12px) rotate(4deg)}}
+@keyframes float{to{transform:translateY(-110vh) rotate(360deg)}}
+#joke{font-size:22px;line-height:1.7;min-height:115px}
+.small{font-size:14px;color:#946a91}
+</style>
+</head>
+<body>
+
+<div class="card" id="welcome">
+ <div class="cartoons">🐻 🐰 🐼</div>
+ <h1>Welcome to Happy World! 🌈</h1>
+ <p>A cute little world full of smiles, cartoons & jokes! 💕</p>
+ <h3>1. What's your name? 😊</h3>
+ <input id="name" placeholder="Enter your name..." maxlength="35">
+ <h3>2. Choose your favourite letter 🎀</h3>
+ <div class="options">
+  <button onclick="letter='A';pick(this)">A 🌸</button>
+  <button onclick="letter='B';pick(this)">B 🦋</button>
+  <button onclick="letter='C';pick(this)">C 🍒</button>
+  <button onclick="letter='D';pick(this)">D ⭐</button>
+ </div>
+ <h3>3. How old are you? 🎂</h3>
+ <select id="age">
+  <option value="">Choose your age</option>
+ </select>
+ <br>
+ <button onclick="enterWorld()">Let's Go! ✨💖</button>
+ <p class="small">Your little adventure is waiting!</p>
+</div>
+
+<div class="card" id="world">
+ <div class="cartoons" id="friends">🐻 🐰 🐼</div>
+ <h1 id="hello">Hello, friend! 💗</h1>
+ <p id="intro">Welcome to our magical cartoon world!</p>
+ <h2>😂 Joke Time! / لطیفوں کا وقت</h2>
+ <div id="joke">Ready to laugh? 😆</div>
+ <button onclick="nextJoke()">Next Joke 😂</button>
+ <br>
+ <button onclick="showJoke('en')">English 🇬🇧</button>
+ <button onclick="showJoke('ur')">Urdu 🇵🇰</button>
+ <hr style="border:1px dashed pink">
+ <p>Choose your mood today! 🌈</p>
+ <button onclick="mood('happy')">Happy 😍</button>
+ <button onclick="mood('sleepy')">Sleepy 😴</button>
+ <button onclick="mood('silly')">Silly 🤪</button>
+ <p id="moodText"></p>
+ <button onclick="back()">↩ Start Again</button>
+</div>
+
+<script>
+let letter="A", index=0, lang="en";
+
+for(let i=1;i<=100;i++){
+ let o=document.createElement("option");
+ o.value=i;o.textContent=i+" years old";
+ document.getElementById("age").appendChild(o);
+}
+function pick(btn){
+ letter=btn.textContent[0];
+ document.querySelectorAll(".options button").forEach(b=>b.style.outline="");
+ btn.style.outline="3px solid #70345e";
+}
+const jokes={
+ en:[
+ ["Why did the teddy bear say no to dessert?","Because it was already stuffed! 🧸😂"],
+ ["What do you call a sleeping dinosaur?","A dino-snore! 🦖😴"],
+ ["Why was the math book sad?","It had too many problems! 📚🤣"],
+ ["What do cats eat for breakfast?","Mice Krispies! 🐱🥣"],
+ ["Why did the banana go to the doctor?","It wasn't peeling well! 🍌😂"],
+ ["What is a rabbit's favourite music?","Hip-hop! 🐰🎵"],
+ ["Why can't your nose be 12 inches long?","Because then it would be a foot! 👃🤣"]
+ ],
+ ur:[
+ ["استاد: بجلی کہاں سے آتی ہے؟","شاگرد: ماموں کے گھر سے! جب بھی بجلی جاتی ہے ابو کہتے ہیں، پھر کاٹ گئے! 😂"],
+ ["ٹیچر: سب سے زیادہ نشہ کس چیز میں ہوتا ہے؟","شاگرد: کتابوں میں! کھولتے ہی نیند آ جاتی ہے! 📚😴"],
+ ["امی: اتنی دیر سے موبائل کیوں دیکھ رہے ہو؟","بیٹا: امی، پڑھائی کر رہا ہوں۔ امی: کیا؟ بیٹا: بیٹری کتنی جلدی ختم ہوتی ہے! 🤣"],
+ ["دوست: تم امتحان میں پاس کیسے ہوئے؟","دوسرا: سوالوں نے مجھے چھوڑ دیا، میں نے سوالوں کو! 😂"],
+ ["ڈاکٹر: آپ کو آرام کی ضرورت ہے۔","مریض: ڈاکٹر صاحب، یہ بات میرے باس کو بھی لکھ دیں! 😆"],
+ ["استاد: بتاؤ دنیا گول کیوں ہے؟","شاگرد: تاکہ سب کے چکر لگتے رہیں! 🌍😂"],
+ ["ابو: نتیجہ کیسا آیا؟","بیٹا: پرنسپل صاحب خوش تھے، بولے دوبارہ آنا! 🤣"]
+ ]
+};
+function enterWorld(){
+ let n=document.getElementById("name").value.trim();
+ let a=document.getElementById("age").value;
+ if(!n){alert("Please enter your name first! 😊");return}
+ if(!a){alert("Please choose your age! 🎂");return}
+ document.getElementById("welcome").style.display="none";
+ document.getElementById("world").style.display="block";
+ document.getElementById("hello").textContent="Hello, "+n+"! 💖";
+ document.getElementById("intro").textContent=
+ "You are "+a+" years young and your lucky letter is "+letter+"! ✨";
+ index=0;showJoke(lang);
+}
+function showJoke(language){
+ lang=language;
+ let list=jokes[lang];
+ document.getElementById("joke").innerHTML=
+ "<b>"+list[index%list.length][0]+"</b><br>"+list[index%list.length][1];
+}
+function nextJoke(){
+ index++;
+ showJoke(lang);
+}
+function mood(m){
+ let messages={
+ happy:"Keep shining, sunshine! 🌞💖",
+ sleepy:"A tiny nap and a big hug! 🐻💤",
+ silly:"Warning: Extra silliness detected! 🤪🍭"
+ };
+ document.getElementById("moodText").textContent=messages[m];
+}
+function back(){
+ document.getElementById("world").style.display="none";
+ document.getElementById("welcome").style.display="block";
+}
+for(let i=0;i<12;i++){
+ let h=document.createElement("div");
+ h.className="heart";
+ h.textContent=["💖","✨","🌸","💕"][i%4];
+ h.style.left=Math.random()*100+"%";
+ h.style.animationDelay=Math.random()*7+"s";
+ h.style.fontSize=(18+Math.random()*20)+"px";
+ document.body.appendChild(h);
+}
+</script>
+</body>
+</html>'''
+
+with open("happy_world.html", "w", encoding="utf-8") as f:
+    f.write(html)
+
+print("Your website is ready! 💖")
+files.download("happy_world.html")
